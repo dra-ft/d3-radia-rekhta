@@ -1,0 +1,16 @@
+doctype html
+html
+  head
+    title= title
+    meta( name='viewport', content='width=device-width, initial-scale=1' )
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src="https://d3js.org/d3.v5.min.js")
+    script(src="https://d3js.org/d3-dispatch.v2.min.js")
+    script(src="https://d3js.org/d3-selection.v2.min.js")
+    script(src="https://d3js.org/d3-drag.v2.min.js")
+    script(src="https://unpkg.com/rita")
+    script(src="https://unpkg.com/ml5@latest/dist/ml5.min.js")     
+    script(type='module' src='./javascripts/script.js' defer)
+
+  body
+    block content

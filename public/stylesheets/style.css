@@ -1,0 +1,75 @@
+body {
+  padding: 50px;
+}
+
+a {
+  color: #00B7FF;
+}
+
+/* CSS files add styling rules to your content */
+
+body {
+    font-family: helvetica, arial, sans-serif;
+    margin: 2em;
+}
+
+h1 {
+    font-style: italic;
+    color: #373fff;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    /*   background-color: black; */
+}
+
+canvas {
+    display: block;
+}
+
+.back {
+    background-color: red;
+}
+
+#graph-data {
+    width: 50%;
+    height: 100px;
+}
+
+.container {
+    /*   display: flex;
+    flex-direction: column;
+    justify-items: center; */
+}
+
+svg {
+    width: 100vw;
+    height: 80vh;
+}
+
+#input-container {
+    /* position: absolute;
+    top: 80vh;
+    left: 0; */
+
+
+    width: 50%;
+    margin: auto;
+}
+
+#word-input {
+    font-size: 32px;
+    width: 100%;
+    margin: 0px;
+}
+
+@media screen and (min-width: 320px) and (max-width: 425px) {
+    #input-container {    
+        width: 80%;
+        margin: auto;
+    }
+    #word-input {
+        font-size: 24px;
+    }   
+}
