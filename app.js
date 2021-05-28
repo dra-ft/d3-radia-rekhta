@@ -1,3 +1,4 @@
+require('dotenv').config()
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -24,17 +25,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.post('/nazm', (req, res) => {
-
-    console.log( req.body.search_term)
     const SEARCH_TERM = req.body.search_term
+    if(SEARCH_TERM === "" ) {
+        console.log("empty");
+        res.send({data: null, hindi_translation: null}) ;
+        return;
+    }
     const url = `https://www.rekhta.org/search/nazm?q=${SEARCH_TERM}`
     const results = scraper.nazmScraper(url)
-    // translate(SEARCH_TERM, { to: 'Hindi' })
-    //     .then(text => console.log(text));
-    results.then(nazms => 
-        res.send({data: nazms})    
-    )
-    // res.send({data: results});
+    translate.engine = "google";
+    console.log(process.env.GOOGLE_TRANSLATE_KEY)
+    translate.key = process.env.GOOGLE_TRANSLATE_KEY
+    results.then(nazms => { 
+        translate(SEARCH_TERM, { from: "en", to: "hi" }).then(text => {
+            console.log(text)
+            res.send({data: nazms, hindi_translation: text})    
+        })
+    });
 })
 
 // catch 404 and forward to error handler

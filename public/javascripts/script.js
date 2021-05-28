@@ -1,28 +1,28 @@
+
 // Get the input box
 let input = document.getElementById('word-input');
+let inputButton = document.getElementById('word-button')
+let platformSelect = document.getElementById('platform-select')
 
 // Init a timeout variable to be used below
 let timeout = null;
 
+inputButton.addEventListener('click', (e) => {
+  sayMessage('working on it...')
+  let platform = platformSelect.value
+  console.log('Your word is ', input.value, ' with platform ', platform)
+  switch(platform) {
+    case 'padma': beginRadia(input.value)
+      break
+    case 'rekhta': beginNazm(input.value)
+      break
+  }
+  e.preventDefault()
+})
+
 // Listen for keystroke events
 input.addEventListener('keyup', function (e) {
-    // Clear the timeout if it has already been set.
-    // This will prevent the previous task from executing
-    // if it has been less than <MILLISECONDS>
-    clearTimeout(timeout);
-
-    // Make a new timeout set to go off in 1000ms (1 second)
-    timeout = setTimeout(function () {
-        console.log('Input Value:', input.value);
-
-        if(Math.random()*2 <= 1) {
-            beginNazm(input.value);
-        }
-        else {
-            beginRadia(input.value);
-        }
-        
-    }, 1000);
+    sayMessage("listening...")
 });
 
 const beginRadia = (SEARCH_TERM) => {
@@ -52,8 +52,12 @@ const beginNazm = (SEARCH_TERM) => {
     .then(response => response.json())
     .then(data => {
         console.log('Success:', data);
+        if(data.data == null && data.hindi_translation == null) {
+            sayMessage("I'm not very good.. try another word?");
+            return;
+        }
         const nazms = data.data;
-        const hindi_translation = "पानी";
+        const hindi_translation = data.hindi_translation;
         const filtered_lines = [];
         nazms.forEach(nazm => {
             nazm.split("\n").forEach(line => {
@@ -92,13 +96,13 @@ function word2vec(word_input) {
             makePhrases(results)
         }
         else {
-            saySorry();
+            sayMessage("I'm not very good.. try another word?");
         }
         });
     }
 }
 
-function saySorry() {
+function sayMessage(message) {
     let svg = d3.create("svg")
         .attr("id", "svg")
         .attr("viewBox", [0, 0, width, height])
@@ -106,9 +110,9 @@ function saySorry() {
     svg.append("text")
         .attr("x", width / 2)
         .attr("y", height / 3 )
-        .text("I'm not very good.. try another word?")
+        .text(message)
         .attr("fill","#808080")
-        .attr("font-size", "32px")
+        .attr("font-size", "24px")
         .attr("text-anchor","middle")
     
     let parent = document.getElementById("svg-container")
@@ -235,7 +239,7 @@ function makeChartData(data) {
   parent.replaceChild(forceChart(forceData), child)
   if(forceData.nodes.length == 0) {
     console.log("no data");
-    saySorry();
+    sayMessage("I'm not very good.. try another word?");
   }
 
 }
