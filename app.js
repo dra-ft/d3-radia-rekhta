@@ -27,18 +27,15 @@ app.use('/users', usersRouter);
 app.post('/nazm', (req, res) => {
     const SEARCH_TERM = req.body.search_term
     if(SEARCH_TERM === "" ) {
-        console.log("empty");
         res.send({data: null, hindi_translation: null}) ;
         return;
     }
     const url = `https://www.rekhta.org/search/nazm?q=${SEARCH_TERM}`
     const results = scraper.nazmScraper(url)
     translate.engine = "google";
-    console.log(process.env.GOOGLE_TRANSLATE_KEY)
     translate.key = process.env.GOOGLE_TRANSLATE_KEY
     results.then(nazms => { 
         translate(SEARCH_TERM, { from: "en", to: "hi" }).then(text => {
-            console.log(text)
             res.send({data: nazms, hindi_translation: text})    
         })
     });
