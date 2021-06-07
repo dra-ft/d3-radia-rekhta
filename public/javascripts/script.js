@@ -1,20 +1,23 @@
 
 // Get the input box
-let input = document.getElementById('word-input');
+let input = document.getElementById('word-input')
 let inputButton = document.getElementById('word-button')
 let platformSelect = document.getElementById('platform-select')
-
-// Init a timeout variable to be used below
-let timeout = null;
+let word2Vec = ml5.word2vec("../text/wordvecs1000.json", modelLoaded)
+function modelLoaded() {
+  console.log("Model Loaded!")
+}
 
 inputButton.addEventListener('click', (e) => {
   sayMessage('working on it...')
   let platform = platformSelect.value
   console.log('Your word is ', input.value, ' with platform ', platform)
   switch(platform) {
-    case 'padma': beginRadia(input.value)
+    case 'padma': 
+      beginRadia(input.value)
       break
-    case 'rekhta': beginNazm(input.value)
+    case 'rekhta': 
+      beginNazm(input.value)
       break
   }
   e.preventDefault()
@@ -25,157 +28,150 @@ input.addEventListener('keyup', function (e) {
     sayMessage("listening...")
 });
 
+const populatePhraseContainer = (phrases) => {
+  let phraseContainer = document.getElementById('phrase-container')
+  phraseContainer.innerHTML = ''
+  phrases.forEach(p => {
+    let ele = document.createElement('p')
+    ele.innerHTML = p
+    phraseContainer.appendChild(ele)
+  })
+}
+
 const beginRadia = (SEARCH_TERM) => {
-    let isnum = /^\d+$/.test(SEARCH_TERM);
-    if(isnum) {
-        let decode_num = "";
-        for(let i = 0; i < SEARCH_TERM.length; i+=2) {
-            let sub = SEARCH_TERM.substring(i, i+2)
-            decode_num += String.fromCharCode(97+(sub%26))
-        } 
-        console.log(decode_num)
-        word2vec(decode_num.toLowerCase())
-    }
+  let results = word2vec(SEARCH_TERM.toLowerCase())
+  results.then((wordArr) => {
+    if(wordArr) {
+      makePhrases(wordArr).then((phrases) => {
+        console.log(phrases)
+        populatePhraseContainer(phrases)
+        makeChartData(phrases)
+      })
+    } 
     else {
-        word2vec(SEARCH_TERM.toLowerCase())
-    }
+      sayMessage("I'm not very good.. try another word?");
+    } 
+  })
 }
 
 const beginNazm = (SEARCH_TERM) => {
-    fetch('/nazm', {
-        method: 'POST', // or 'PUT'
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ search_term: SEARCH_TERM }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-        if(data.data == null && data.hindi_translation == null) {
-            sayMessage("I'm not very good.. try another word?");
-            return;
+  fetch('/nazm', {
+    method: 'POST', 
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ search_term: SEARCH_TERM }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.data == null && data.hindi_translation == null) {
+      sayMessage("I'm not very good.. try another word?");
+      return;
+    }
+    const nazms = data.data;
+    const hindi_translation = data.hindi_translation;
+    const filtered_lines = [];
+    nazms.forEach(nazm => {
+      nazm.split("\n").forEach(line => {
+        if(line.includes(hindi_translation)) {
+          filtered_lines.push(line)
         }
-        const nazms = data.data;
-        const hindi_translation = data.hindi_translation;
-        const filtered_lines = [];
-        nazms.forEach(nazm => {
-            nazm.split("\n").forEach(line => {
-                if(line.includes(hindi_translation)) {
-                    filtered_lines.push(line)
-                }
-            })
-        })
-        console.log(filtered_lines)
-
-        let opts = {
-            ignoreCase: true,
-            ignoreStopWords: true
-           };
-        RiTa.concordance(filtered_lines.join(''), opts);
-        let kwic_lines = RiTa.kwic(hindi_translation, 5);
-        // console.log(kwic_lines)
-        kwic_lines = kwic_lines.sort(() => Math.random() - Math.random()).slice(0, 5)
-        makeChartData(kwic_lines);
+      })
     })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+    console.log(filtered_lines)
+    
+    let opts = {
+      ignoreCase: true,
+      ignoreStopWords: true
+    };
+    RiTa.concordance(filtered_lines.join(''), opts);
+    let kwic_lines = RiTa.kwic(hindi_translation, 5);
+    // console.log(kwic_lines)
+    kwic_lines = kwic_lines.sort(() => Math.random() - Math.random()).slice(0, 5)
+    populatePhraseContainer(kwic_lines)
+    makeChartData(kwic_lines);
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
 }
 
 function word2vec(word_input) {
-    const wordVectors = ml5.word2vec("../text/wordvecs1000.json", modelLoaded);  
-    function modelLoaded() {
-        console.log("Model Loaded!")
-        // console.log(wordVectors)
-        
-        // const word_input = document.getElementById("word-input").value
-        wordVectors.nearest(word_input, function(err, results) {
-        console.log(results)
-        if(results) {
-            makePhrases(results)
-        }
-        else {
-            sayMessage("I'm not very good.. try another word?");
-        }
-        });
-    }
+  return new Promise((resolve, reject) => {
+    word2Vec.nearest(word_input, function(err, results) {
+      return resolve(results)
+    });
+  })
+ 
 }
 
 function sayMessage(message) {
-    let svg = d3.create("svg")
-        .attr("id", "svg")
-        .attr("viewBox", [0, 0, width, height])
+  let svg = d3.create("svg")
+          .attr("id", "svg")
+          .attr("viewBox", [0, 0, width, height])
     
-    svg.append("text")
-        .attr("x", width / 2)
-        .attr("y", height / 3 )
-        .text(message)
-        .attr("fill","#808080")
-        .attr("font-size", "24px")
-        .attr("text-anchor","middle")
+  svg.append("text")
+      .attr("x", width / 2)
+      .attr("y", height / 3 )
+      .text(message)
+      .attr("fill","#808080")
+      .attr("font-size", "22px")
+      .attr("text-anchor","middle")
     
-    let parent = document.getElementById("svg-container")
-    let child = document.getElementById("svg")
-    if(child) {
-        parent.replaceChild(svg.node(), child)  
-    }
-    else {
-        parent.appendChild(svg.node())
-    }
-  
+  let parent = document.getElementById("svg-container")
+  let child = document.getElementById("svg")
+  if(child) parent.replaceChild(svg.node(), child) 
+  else parent.appendChild(svg.node())  
 }
 
 // get phrases from radia text
 function makePhrases(potential_words) {
-
-  fetch("../text/plain-radia-with-characters.txt")
-    .then(response => response.text())
-    .then(text => {
-      text = text.replace(/<\/?[^>]+(>|$)/g, "");
-    
-      // find topic
-      let topic = null;
-      for(let i = 0; i < potential_words.length; i++) {
-        if(text.includes(potential_words[i].word)) {
-          topic = potential_words[i].word;
-          break;
+  return new Promise((resolve, reject) => {
+    fetch("../text/plain-radia-with-characters.txt")
+      .then(response => response.text())
+      .then(text => {
+        text = text.replace(/<\/?[^>]+(>|$)/g, "");
+      
+        // find topic
+        let topic = null;
+        for(let i = 0; i < potential_words.length; i++) {
+          if(text.includes(potential_words[i].word)) {
+            topic = potential_words[i].word;
+            break;
+          }
         }
-      }
+        
+        let sentences = text.split("\n");
+        // let sents_about_topic = sentences.filter(sent => sent.includes(topic))
+        // let onlyDialogues = sents_about_topic.map(line => {
+        //   return line.substring(line.indexOf(":")+1).trim()
+        // });
+        // console.log(onlyDialogues);
+        // makeChartData(onlyDialogues);
       
-      console.log(topic);
-    
-      let sentences = text.split("\n");
-      // let sents_about_topic = sentences.filter(sent => sent.includes(topic))
-      // let onlyDialogues = sents_about_topic.map(line => {
-      //   return line.substring(line.indexOf(":")+1).trim()
-      // });
-      // console.log(onlyDialogues);
-      // makeChartData(onlyDialogues);
-    
-      // markov
-      // let generator = RiTa.markov(3)
-      // onlyDialogues.forEach(dial => generator.addText(dial))
-      // let generated = generator.generate(1);
-      // console.log(generated)
-    
-      // kwic
-      let opts = {
-       ignoreCase: true,
-       ignoreStopWords: true
-      };
-    
-      let sents_without_characters = sentences.map(line => {
-        return line.substring(line.indexOf(":")+1).trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g," ")
-      });
-      RiTa.concordance(sents_without_characters.join(''), opts);
-      let kwic_lines = RiTa.kwic(topic, 5);
-      // console.log(kwic_lines)
-      kwic_lines = kwic_lines.sort(() => Math.random() - Math.random()).slice(0, 5)
-      makeChartData(kwic_lines);
+        // markov
+        // let generator = RiTa.markov(3)
+        // onlyDialogues.forEach(dial => generator.addText(dial))
+        // let generated = generator.generate(1);
+        // console.log(generated)
       
-    })
-  
+        // kwic
+        let opts = {
+        ignoreCase: true,
+        ignoreStopWords: true
+        };
+      
+        let sents_without_characters = sentences.map(line => {
+          return line.substring(line.indexOf(":")+1).trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g," ")
+        });
+        RiTa.concordance(sents_without_characters.join(''), opts);
+        let kwic_lines = RiTa.kwic(topic, 5);
+        // console.log(kwic_lines)
+        kwic_lines = kwic_lines.sort(() => Math.random() - Math.random()).slice(0, 5)
+        return resolve(kwic_lines);
+        
+      })
+  })
 }
 
 function makeChartData(data) {
@@ -213,7 +209,6 @@ function makeChartData(data) {
   .map(id => {
     return {id: id, group: 1};
   });;
-  console.log(result);
 
   forceNodes = result.map(node => {
     let radius = forceLinks.filter(link => link.source === node.id)
@@ -224,13 +219,10 @@ function makeChartData(data) {
     }
   });
 
-  // console.log(forceNodes);
-  console.log(forceNodes);
   let forceData = {
     nodes: forceNodes,
     links: forceLinks
   }
-  console.log(forceData);
   
   
   // document.body.appendChild(forceChart(forceData))

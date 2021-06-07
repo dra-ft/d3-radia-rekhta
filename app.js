@@ -6,9 +6,6 @@ var logger = require('morgan');
 var translate = require('translate');
 var scraper = require('./scraper');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-
 var app = express();
 
 // view engine setup
@@ -21,23 +18,25 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.get('/', (req, res) => {
+  res.render('index')
+})
 app.post('/nazm', (req, res) => {
-    const SEARCH_TERM = req.body.search_term
-    if(SEARCH_TERM === "" ) {
-        res.send({data: null, hindi_translation: null}) ;
-        return;
-    }
-    const url = `https://www.rekhta.org/search/nazm?q=${SEARCH_TERM}`
-    const results = scraper.nazmScraper(url)
-    translate.engine = "google";
-    translate.key = process.env.GOOGLE_TRANSLATE_KEY
-    results.then(nazms => { 
-        translate(SEARCH_TERM, { from: "en", to: "hi" }).then(text => {
-            res.send({data: nazms, hindi_translation: text})    
-        })
-    });
+  console.log(req.body)
+  const SEARCH_TERM = req.body.search_term
+  if(SEARCH_TERM === "" ) {
+    res.send({data: null, hindi_translation: null}) ;
+    return;
+  }
+  const url = `https://www.rekhta.org/search/nazm?q=${SEARCH_TERM}`
+  const results = scraper.nazmScraper(url)
+  translate.engine = "google";
+  translate.key = process.env.GOOGLE_TRANSLATE_KEY
+  results.then(nazms => { 
+    translate(SEARCH_TERM, { from: "en", to: "hi" }).then(text => {
+      res.send({data: nazms, hindi_translation: text})    
+    })
+  });
 })
 
 // catch 404 and forward to error handler
