@@ -11,4 +11,6 @@ Built using [nazm-scraper](https://github.com/dra-ft/nazm-scraper), [d3](https:/
 Deployed at https://d3-radia-rekhta.herokuapp.com/
 
 ## TODOS
-- [ ] expand to using padma instead of just radia tapes
+- [x] expand to using padma instead of just radia tapes
+- [ ] fix mobile layout
+- [ ] ｄ３繋がり進め方を考える

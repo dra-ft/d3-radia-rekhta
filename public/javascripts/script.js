@@ -13,7 +13,10 @@ inputButton.addEventListener('click', (e) => {
   let platform = platformSelect.value
   console.log('Your word is ', input.value, ' with platform ', platform)
   switch(platform) {
-    case 'padma': 
+    case 'padma':
+      beginPadma(input.value)
+      break
+    case 'radia': 
       beginRadia(input.value)
       break
     case 'rekhta': 
@@ -35,6 +38,42 @@ const populatePhraseContainer = (phrases) => {
     let ele = document.createElement('p')
     ele.innerHTML = p
     phraseContainer.appendChild(ele)
+  })
+}
+
+const beginPadma = (SEARCH_TERM) => {
+  fetch('/padma', {
+    method: 'POST', 
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ search_term: SEARCH_TERM }),
+  })
+  .then(results => results.json())
+  .then(data => {
+    // console.log(data)
+    const lines = []
+    data.forEach(arr => {
+      if(arr.length > 0) lines.push(...arr)
+    })
+    // console.log(lines)
+
+    let opts = {
+      ignoreCase: true,
+      ignoreStopWords: false
+    };
+    RiTa.concordance(lines.join(''), opts);
+    let kwic_lines = RiTa.kwic(SEARCH_TERM, 10);
+    kwic_lines = kwic_lines.sort(() => Math.random() - Math.random()).slice(0, 5)
+    let regexp = new RegExp(`${SEARCH_TERM}.+`, 'gi');
+    kwic_lines = kwic_lines.map(line => {
+      line = line.toLowerCase().replace(/[.,]+/g, '')
+      console.log(line)
+      if(line.match(regexp)) return line.match(regexp)[0]
+      else return null
+    })
+    kwic_lines = kwic_lines.filter(line => line !== null)
+    console.log(kwic_lines)
+    populatePhraseContainer(kwic_lines)
+    makeChartData(kwic_lines)
   })
 }
 
