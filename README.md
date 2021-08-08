@@ -6,7 +6,7 @@ npm install
 npm start
 ```
 
-Built using [nazm-scraper](https://github.com/dra-ft/nazm-scraper), [d3](https://d3js.org/), [ml5](https://ml5js.org/) and [express](https://expressjs.com/) 
+Built using [nazm-scraper](https://github.com/dra-ft/nazm-scraper), [d3](https://d3js.org/), [ml5](https://ml5js.org/)  [express](https://expressjs.com/) [lingva](https://lingva.ml/)
 
 Deployed at https://d3-radia-rekhta.herokuapp.com/
 

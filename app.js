@@ -1,11 +1,9 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var scraper = require('./scraper');
 const fetch = require('node-fetch')
-const axios = require('axios')
+var scraper = require('./scraper');
 
 var app = express();
 
@@ -16,7 +14,6 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -109,8 +106,9 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-app.listen(3000, () => {
-  console.log(`listening at http://localhost:${3000}`)
+const port = process.env.PORT || 3000
+app.listen(port, () => {
+  console.log(`listening at http://localhost:${port}`)
 })
 
 // module.exports = app;
