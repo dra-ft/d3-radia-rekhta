@@ -3,9 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var translate = require('translate');
 var scraper = require('./scraper');
 const fetch = require('node-fetch')
+const axios = require('axios')
 
 var app = express();
 
@@ -32,11 +32,11 @@ app.post('/nazm', (req, res) => {
   }
   const url = `https://www.rekhta.org/search/nazm?q=${SEARCH_TERM}`
   const results = scraper.nazmScraper(url)
-  translate.engine = "google";
-  translate.key = process.env.GOOGLE_TRANSLATE_KEY
   results.then(nazms => { 
-    translate(SEARCH_TERM, { from: "en", to: "hi" }).then(text => {
-      res.send({data: nazms, hindi_translation: text})    
+    fetch(`https://lingva.ml/api/v1/en/hi/${SEARCH_TERM}`)
+    .then(response => response.json())
+    .then(text => {
+      res.send({data: nazms, hindi_translation: text.translation})
     })
   });
 })
