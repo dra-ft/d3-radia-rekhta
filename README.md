@@ -1,5 +1,9 @@
 # d3-Radia-Rektha Experiment
 
+## Process
+
+![process diagram](https://github.com/dra-ft/d3-radia-rekhta/blob/main/d3-x-radia-x-rekhta.drawio%20(1).png?raw=true)
+
 ## Running locally
 ```
 npm install
